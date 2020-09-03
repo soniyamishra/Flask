@@ -1,6 +1,6 @@
-from flask import render_template,url_for,flash,redirect,request,abort,Blueprint
+from flask import render_template,url_for,flash,redirect,request,abort,Blueprint,current_app
 from flaskBlog.posts.forms import PostForm
-from flaskBlog.models import Post
+from flaskBlog.models import User, Post
 from flask_login import login_required,current_user
 import os
 import json
@@ -17,7 +17,7 @@ def new_post():
         db.session.add(post)
         db.session.commit()
         flash('Your post has been created','success')
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     return render_template('create_post.html',title="New Post",form=form,legend='New Post')
 
 @posts.route("/post/<int:post_id>")
@@ -37,7 +37,7 @@ def update_post(post_id):
         post.content=form.content.data
         db.session.commit()
         flash('Your post has been updated','success')
-        return redirect(url_for('post',post_id=post.id))
+        return redirect(url_for('posts.post',post_id=post.id))
     elif(request.method=="GET"):
         form.title.data=post.title
         form.content.data=post.content
@@ -52,11 +52,11 @@ def delete_post(post_id):
     db.session.delete(post)
     db.session.commit()
     flash('Your post has been deleted!','success')
-    return redirect(url_for('home'))
+    return redirect(url_for('main.home'))
 
 @posts.route("/debug_add_posts")
 def debug_add_post():
-    json_path = os.path.join(app.root_path, 'static', 'posts.json')
+    json_path = os.path.join(current_app.root_path, 'static', 'posts.json')
     with open(json_path) as json_file:
         data = json.load(json_file)
         for post_data in data:
@@ -65,7 +65,7 @@ def debug_add_post():
             db.session.add(post)
             db.session.commit()
     flash("Posts have been added!", "success")
-    return redirect(url_for('home'))
+    return redirect(url_for('main.home'))
 
 @posts.route("/user/<string:username>")
 def user_posts(username):
